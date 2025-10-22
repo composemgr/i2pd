@@ -1,0 +1,61 @@
+# nginx proxy address - http://172.17.0.1:62100
+
+name: i2pd
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: casjaysdevdocker/i2pd:latest
+    container_name: i2pd-app
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: i2pd-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    ports:
+      - '4444:4444'
+      - '7656:7656'
+      - '2827:2827'
+      - '7657:7657'
+      - '7061:7061'
+      - '172.17.0.1:62100:7070'
+    volumes:
+      - './rootfs/data:/data:z'
+      - './rootfs/config:/config:z'
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://i2pd-app:3000'
+      - 'cloudflare.hostname=i2pd.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.i2pd-app.entrypoints=http'
+      - 'traefik.http.routers.i2pd-app-secure.tls=true'
+      - 'traefik.http.routers.i2pd-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.i2pd-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.i2pd-app.middlewares=i2pd-app-https-redirect'
+      - 'traefik.http.routers.i2pd-app-secure.entrypoints=https'
+      - 'traefik.http.routers.i2pd-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.i2pd-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.i2pd-app-secure.service=i2pd-app'
+      - 'traefik.http.services.i2pd-app.loadbalancer.server.port=3000'
+    networks:
+      - i2pd
+      - proxy
+      - cloudflare
+
+networks:
+  i2pd:
+    name: i2pd
+    external: false
+  proxy:
+    external: true
+  cloudflare:
+    external: true
+
