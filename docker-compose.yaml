@@ -1,0 +1,39 @@
+# nginx proxy address - http://172.17.0.1:62100
+
+name: i2pd
+x-logging: &default-logging
+  options:
+    max-size: '5m'
+    max-file: '1'
+  driver: json-file
+
+services:
+  app:
+    image: casjaysdevdocker/i2pd:latest
+    container_name: i2pd-app
+    hostname: ${BASE_HOST_NAME:-$HOSTNAME}
+    restart: always
+    pull_policy: always
+    logging: *default-logging
+    environment:
+      TZ: ${TZ:-America/New_York}
+      CONTAINER_NAME: i2pd-app
+      HOSTNAME: ${BASE_HOST_NAME:-$HOSTNAME}
+    ports:
+      - '4444:4444'
+      - '7656:7656'
+      - '2827:2827'
+      - '7657:7657'
+      - '7061:7061'
+      - '172.17.0.1:62100:7070'
+    volumes:
+      - './rootfs/data/i2pd:/data:z'
+      - './rootfs/config/i2pd:/config:z'
+    networks:
+      - i2pd
+
+networks:
+  i2pd:
+    name: i2pd
+    external: false
+
