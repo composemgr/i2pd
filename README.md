@@ -45,8 +45,8 @@ See `docker-compose.yaml` for complete list of configurable options.
 
 ## 📂 Volumes
 
-- `./rootfs/data/i2pd` - Data storage
-- `./rootfs/config/i2pd` - Data storage
+- `./volumes/data/i2pd` - Data storage
+- `./volumes/config/i2pd` - Data storage
 
 ## 🔍 Logging
 
