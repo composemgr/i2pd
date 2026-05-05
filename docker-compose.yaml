@@ -27,8 +27,8 @@ services:
       - '7061:7061'
       - '172.17.0.1:62100:7070'
     volumes:
-      - './rootfs/data/i2pd:/data:z'
-      - './rootfs/config/i2pd:/config:z'
+      - './volumes/data/i2pd:/data:z'
+      - './volumes/config/i2pd:/config:z'
     networks:
       - i2pd
 
