@@ -31,9 +31,30 @@ services:
       - './volumes/config/i2pd:/config:z'
     networks:
       - i2pd
+      - proxy
+      - cloudflare
+    labels:
+      - 'traefik.enable=true'
+      - 'cloudflare.enable=true'
+      - 'traefik.docker.network=proxy'
+      - 'cloudflare.service=http://i2pd-app:7070'
+      - 'cloudflare.hostname=i2pd.${CLOUDFLARE_ZONE_NAME:-}'
+      - 'traefik.http.routers.i2pd-app.entrypoints=http'
+      - 'traefik.http.routers.i2pd-app-secure.tls=true'
+      - 'traefik.http.routers.i2pd-app.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.middlewares.i2pd-app-https-redirect.redirectscheme.scheme=https'
+      - 'traefik.http.routers.i2pd-app.middlewares=i2pd-app-https-redirect'
+      - 'traefik.http.routers.i2pd-app-secure.entrypoints=https'
+      - 'traefik.http.routers.i2pd-app-secure.rule=Host($(${BASE_HOST_NAME:-$HOSTNAME}))'
+      - 'traefik.http.routers.i2pd-app-secure.tls.certresolver=cloudflare'
+      - 'traefik.http.routers.i2pd-app-secure.service=i2pd-app'
+      - 'traefik.http.services.i2pd-app.loadbalancer.server.port=7070'
 
 networks:
   i2pd:
     name: i2pd
     external: false
-
+  proxy:
+    external: true
+  cloudflare:
+    external: true
